@@ -1,5 +1,14 @@
 from flask import Flask, render_template, request, redirect
 from flask_sqlalchemy import SQLAlchemy
+from external.crystalpay_sdk import *
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+login = os.getenv('login')
+secret_1 = os.getenv('secret_1')
+secret_2 = os.getenv('secret_2')
+crystalpayAPI = CrystalPAY(login, secret_1, secret_2)
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///products.db'
@@ -43,7 +52,10 @@ def create():
     
 @app.route('/buy/<int:id>')
 def buy_course(id):
-    return str(id)
+    course = Item.query.get(id)
+    create_purchase = crystalpayAPI.Invoice.create(course.price, InvoiceType.purchase, 15, description='Покупка курса', redirect_url='http://127.0.0.1:5000/')
+    
+    return redirect(create_purchase['url'])
 
 if __name__ == '__main__':
     app.run(debug=True)
