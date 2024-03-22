@@ -8,12 +8,16 @@ load_dotenv()
 login = os.getenv('login')
 secret_1 = os.getenv('secret_1')
 secret_2 = os.getenv('secret_2')
+mysql_login = os.getenv('mysql_login')
+mysql_password = os.getenv('mysql_password')
+host = os.getenv('host')
+db_name = os.getenv('db_name')
 crystalpayAPI = CrystalPAY(login, secret_1, secret_2)
 
-app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///products.db'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-db = SQLAlchemy(app)
+application = Flask(__name__)
+application.config['SQLALCHEMY_DATABASE_URI'] = f'mysql://{mysql_login}:{mysql_password}@{host}/{db_name}'
+application.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+db = SQLAlchemy(application)
 
 class Item(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -22,19 +26,19 @@ class Item(db.Model):
     text = db.Column(db.Text)
     isActive = db.Column(db.Boolean, default=True)
  
-with app.app_context():
+with application.app_context():
     db.create_all()
 
-@app.route('/')
+@application.route('/')
 def main_page():
     items = Item.query.order_by(Item.price).all()
     return render_template('index.html', data=items)
 
-@app.route('/about')
+@application.route('/about')
 def about():
     return render_template('about.html')
 
-@app.route('/create', methods=['POST', 'GET'])
+@application.route('/create', methods=['POST', 'GET'])
 def create():
     if request.method == 'POST':
         title = request.form['title']
@@ -50,12 +54,13 @@ def create():
     else:
         return render_template('create.html')
     
-@app.route('/buy/<int:id>')
+
+@application.route('/buy/<int:id>')
 def buy_course(id):
     course = Item.query.get(id)
-    create_purchase = crystalpayAPI.Invoice.create(course.price, InvoiceType.purchase, 15, description='Покупка курса', redirect_url='http://127.0.0.1:5000/')
+    create_purchase = crystalpayAPI.Invoice.create(course.price, InvoiceType.purchase, 15, description='Покупка курса', redirect_url='https://t.me/+TnIGkFP9H1JmMWEy')
     
     return redirect(create_purchase['url'])
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    application.run(debug=True)
