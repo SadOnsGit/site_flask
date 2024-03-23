@@ -24,6 +24,7 @@ class Item(db.Model):
     title = db.Column(db.String(100), nullable=False)
     price = db.Column(db.Integer)
     text = db.Column(db.Text)
+    prod_url = db.Column(db.Text)
     isActive = db.Column(db.Boolean, default=True)
  
 with application.app_context():
@@ -58,7 +59,7 @@ def create():
 @application.route('/buy/<int:id>')
 def buy_course(id):
     course = Item.query.get(id)
-    create_purchase = crystalpayAPI.Invoice.create(course.price, InvoiceType.purchase, 15, description='Покупка курса', redirect_url='https://t.me/+TnIGkFP9H1JmMWEy')
+    create_purchase = crystalpayAPI.Invoice.create(course.price, InvoiceType.purchase, 15, description='Покупка курса', redirect_url=f'{course.prod_url}')
     
     return redirect(create_purchase['url'])
 
