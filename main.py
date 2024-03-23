@@ -38,22 +38,6 @@ def main_page():
 @application.route('/about')
 def about():
     return render_template('about.html')
-
-@application.route('/create', methods=['POST', 'GET'])
-def create():
-    if request.method == 'POST':
-        title = request.form['title']
-        price = request.form['price']
-        text = request.form['text']
-        item = Item(title=title, price=price, text=text)
-        try:
-            db.session.add(item)
-            db.session.commit()
-            return redirect('/')
-        except Exception as e:
-            return f'Ошибка {e}'
-    else:
-        return render_template('create.html')
     
 
 @application.route('/buy/<int:id>')
